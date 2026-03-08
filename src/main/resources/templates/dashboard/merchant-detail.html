@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('商户详情')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: sidebar}"></nav>
+<script th:inline="javascript">document.querySelector('.sidebar .nav-link[href="/dashboard/merchants"]').classList.add('active');</script>
+<div class="main-content">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3><i class="bi bi-building me-2"></i>商户详情</h3>
+            <p class="text-secondary mb-0">商户ID: <code th:text="${merchant.merchantId}"></code></p>
+        </div>
+        <div>
+            <form method="post" th:action="@{/dashboard/merchants/{id}/toggle(id=${merchant.merchantId})}" style="display:inline;">
+                <button type="submit" class="btn" th:classappend="${merchant.status == 'ACTIVE'} ? 'btn-outline-danger' : 'btn-outline-success'">
+                    <i class="bi" th:classappend="${merchant.status == 'ACTIVE'} ? 'bi-pause-circle' : 'bi-play-circle'"></i>
+                    <span th:text="${merchant.status == 'ACTIVE'} ? '禁用商户' : '启用商户'"></span>
+                </button>
+            </form>
+            <a th:href="@{/dashboard/merchants}" class="btn btn-outline-light ms-2"><i class="bi bi-arrow-left"></i> 返回</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Basic Info -->
+        <div class="col-lg-6">
+            <div class="card card-dark">
+                <div class="card-header"><i class="bi bi-info-circle me-1"></i> 基本信息</div>
+                <div class="card-body">
+                    <table class="table table-dark-custom mb-0">
+                        <tr><td class="text-secondary" style="width:140px;">商户名称</td><td th:text="${merchant.merchantName}"></td></tr>
+                        <tr><td class="text-secondary">联系人</td><td th:text="${merchant.contactName}"></td></tr>
+                        <tr><td class="text-secondary">联系电话</td><td th:text="${merchant.contactPhone}"></td></tr>
+                        <tr><td class="text-secondary">联系邮箱</td><td th:text="${merchant.contactEmail}"></td></tr>
+                        <tr><td class="text-secondary">回调URL</td><td><code th:text="${merchant.notifyUrl}"></code></td></tr>
+                        <tr><td class="text-secondary">费率</td><td th:text="${#numbers.formatDecimal(merchant.feeRate * 100, 1, 2) + '%'}"></td></tr>
+                        <tr><td class="text-secondary">结算周期</td><td th:text="${merchant.settlementCycle}"></td></tr>
+                        <tr><td class="text-secondary">风险等级</td><td><span class="badge badge-status" th:classappend="${merchant.riskLevel == 'HIGH'} ? 'badge-danger' : 'badge-info'" th:text="${merchant.riskLevel}"></span></td></tr>
+                        <tr><td class="text-secondary">状态</td><td><span class="badge badge-status" th:classappend="${merchant.status == 'ACTIVE'} ? 'badge-success' : 'badge-warning'" th:text="${merchant.status}"></span></td></tr>
+                        <tr><td class="text-secondary">创建时间</td><td th:text="${#temporals.format(merchant.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Keys -->
+        <div class="col-lg-6">
+            <div class="card card-dark mb-3">
+                <div class="card-header"><i class="bi bi-key me-1"></i> API密钥</div>
+                <div class="card-body">
+                    <table class="table table-dark-custom mb-0">
+                        <tr><td class="text-secondary" style="width:140px;">Merchant ID</td><td><code th:text="${merchant.merchantId}"></code></td></tr>
+                        <tr><td class="text-secondary">Merchant Secret</td><td><code th:text="${merchant.merchantSecret}"></code></td></tr>
+                        <tr><td class="text-secondary">单笔限额</td><td th:text="${#numbers.formatInteger(merchant.singleLimitVnd, 0, 'COMMA')} + ' VND'"></td></tr>
+                        <tr><td class="text-secondary">日限额</td><td th:text="${#numbers.formatInteger(merchant.dailyLimitVnd, 0, 'COMMA')} + ' VND'"></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Balance -->
+            <div class="card card-dark">
+                <div class="card-header"><i class="bi bi-wallet2 me-1"></i> 账户余额</div>
+                <div class="card-body">
+                    <table class="table table-dark-custom mb-0" th:if="${usdtAccount != null}">
+                        <tr><td class="text-secondary" style="width:140px;">USDT余额</td><td th:text="${usdtAccount.usdtBalance}"></td></tr>
+                        <tr><td class="text-secondary">USDT冻结</td><td th:text="${usdtAccount.usdtFrozen}"></td></tr>
+                        <tr><td class="text-secondary">标记价格</td><td th:text="${usdtAccount.markPriceUsdtVnd} + ' VND'"></td></tr>
+                        <tr><td class="text-secondary">风险权益</td><td th:text="${#numbers.formatDecimal(usdtAccount.riskEquityVnd, 0, 'COMMA', 2, 'POINT')} + ' VND'"></td></tr>
+                    </table>
+                    <table class="table table-dark-custom mb-0" th:if="${vndAccount != null}">
+                        <tr><td class="text-secondary" style="width:140px;">VND余额</td><td th:text="${#numbers.formatDecimal(vndAccount.balanceVnd, 0, 'COMMA', 2, 'POINT')} + ' VND'"></td></tr>
+                        <tr><td class="text-secondary">待结算</td><td th:text="${#numbers.formatDecimal(vndAccount.pendingSettlementVnd, 0, 'COMMA', 2, 'POINT')} + ' VND'"></td></tr>
+                        <tr><td class="text-secondary">已结算</td><td th:text="${#numbers.formatDecimal(vndAccount.settledAmountVnd, 0, 'COMMA', 2, 'POINT')} + ' VND'"></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

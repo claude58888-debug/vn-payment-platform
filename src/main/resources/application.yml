@@ -40,6 +40,13 @@ spring:
         acknowledge-mode: manual
         prefetch: 10
 
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: Asia/Ho_Chi_Minh
@@ -66,6 +73,12 @@ logging:
 
 # Platform configuration
 platform:
+  jwt:
+    secret: ${PLATFORM_JWT_SECRET:change-me-in-production-must-be-at-least-32-chars}
+    expiration: 86400000
+  admin:
+    username: ${PLATFORM_ADMIN_USERNAME:admin}
+    password-hash: ${PLATFORM_ADMIN_PASSWORD_HASH:$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy}
   snowflake:
     worker-id: 1
     datacenter-id: 1
