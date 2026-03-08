@@ -76,10 +76,11 @@ public class ApiUploader {
         payload.put("cardLast4", parsed.cardLast4);
         payload.put("direction", parsed.direction);
         payload.put("txTime", parsed.txTime);
-        payload.put("timestamp", System.currentTimeMillis());
+        long timestamp = System.currentTimeMillis();
+        payload.put("timestamp", timestamp);
 
-        // Generate HMAC-SHA256 signature
-        String signData = rawText + "|" + System.currentTimeMillis();
+        // Generate HMAC-SHA256 signature using the same timestamp
+        String signData = rawText + "|" + timestamp;
         String signature = hmacSha256(signData, authKey);
         payload.put("signature", signature);
 
