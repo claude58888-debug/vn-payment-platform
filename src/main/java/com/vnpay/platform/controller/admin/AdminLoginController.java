@@ -1,6 +1,7 @@
 package com.vnpay.platform.controller.admin;
 
 import com.vnpay.platform.config.JwtUtil;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,16 @@ public class AdminLoginController {
     @Value("${platform.admin.username:admin}")
     private String adminUsername;
 
-    @Value("${platform.admin.password-hash}")
+    @Value("${platform.admin.password:admin123}")
+    private String adminPassword;
+
     private String adminPasswordHash;
+
+    @PostConstruct
+    public void init() {
+        adminPasswordHash = passwordEncoder.encode(adminPassword);
+        log.info("Admin user '{}' initialized", adminUsername);
+    }
 
     @GetMapping("/login")
     public String loginPage(Model model) {
