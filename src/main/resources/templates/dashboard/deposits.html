@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('USDT充值管理')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: sidebar}"></nav>
+<script th:inline="javascript">document.querySelector('.sidebar .nav-link[href="/dashboard/deposits"]').classList.add('active');</script>
+<div class="main-content">
+    <div class="page-header">
+        <h3><i class="bi bi-currency-bitcoin me-2"></i>USDT充值管理</h3>
+        <p class="text-secondary mb-0">管理商户USDT充值订单</p>
+    </div>
+
+    <!-- Balance Overview -->
+    <div class="card card-dark mb-4">
+        <div class="card-header"><i class="bi bi-wallet2 me-1"></i> 商户余额概览</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark-custom mb-0">
+                    <thead><tr><th>商户ID</th><th>USDT余额</th><th>USDT冻结</th><th>标记价格</th><th>风险权益(VND)</th></tr></thead>
+                    <tbody>
+                        <tr th:each="a : ${usdtAccounts}">
+                            <td><code th:text="${a.merchantId}"></code></td>
+                            <td th:text="${a.usdtBalance}"></td>
+                            <td th:text="${a.usdtFrozen}"></td>
+                            <td th:text="${a.markPriceUsdtVnd}"></td>
+                            <td th:text="${#numbers.formatDecimal(a.riskEquityVnd, 0, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card card-dark mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label text-secondary">状态</label>
+                    <select class="form-select" name="status">
+                        <option value="">全部</option>
+                        <option value="PENDING" th:selected="${statusFilter == 'PENDING'}">待确认</option>
+                        <option value="CONFIRMED" th:selected="${statusFilter == 'CONFIRMED'}">已确认</option>
+                        <option value="EXPIRED" th:selected="${statusFilter == 'EXPIRED'}">已过期</option>
+                        <option value="FAILED" th:selected="${statusFilter == 'FAILED'}">失败</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-secondary">商户</label>
+                    <select class="form-select" name="merchantId">
+                        <option value="">全部</option>
+                        <option th:each="m : ${merchants}" th:value="${m.merchantId}" th:text="${m.merchantName}" th:selected="${merchantIdFilter == m.merchantId}"></option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>查询</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Deposit Orders -->
+    <div class="card card-dark">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark-custom mb-0">
+                    <thead>
+                        <tr><th>订单ID</th><th>商户ID</th><th>金额(USDT)</th><th>实际金额</th><th>网络</th><th>充值地址</th><th>TX Hash</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="d : ${deposits}">
+                            <td><code th:text="${d.depositOrderId}"></code></td>
+                            <td th:text="${d.merchantId}"></td>
+                            <td th:text="${d.amountUsdt}"></td>
+                            <td th:text="${d.actualAmountUsdt}"></td>
+                            <td><span class="badge badge-status badge-info" th:text="${d.network}"></span></td>
+                            <td><code style="font-size:11px;" th:text="${d.depositAddress != null} ? ${#strings.abbreviate(d.depositAddress, 20)} : '-'"></code></td>
+                            <td><code style="font-size:11px;" th:text="${d.txHash != null} ? ${#strings.abbreviate(d.txHash, 20)} : '-'"></code></td>
+                            <td>
+                                <span class="badge badge-status" th:classappend="${d.status == 'CONFIRMED'} ? 'badge-success' : (${d.status == 'PENDING'} ? 'badge-warning' : 'badge-danger')" th:text="${d.status}"></span>
+                            </td>
+                            <td th:text="${#temporals.format(d.createdAt, 'MM-dd HH:mm')}"></td>
+                            <td th:if="${d.status == 'PENDING'}">
+                                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" th:data-bs-target="'#confirm-' + ${d.depositOrderId}"><i class="bi bi-check-lg"></i></button>
+                                <form method="post" th:action="@{/dashboard/deposits/{id}/reject(id=${d.depositOrderId})}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('确认拒绝?')"><i class="bi bi-x-lg"></i></button>
+                                </form>
+                            </td>
+                            <td th:if="${d.status != 'PENDING'}">-</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(deposits)}">
+                            <td colspan="10" class="text-center text-secondary py-4">暂无数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modals -->
+<div th:each="d : ${deposits}" th:if="${d.status == 'PENDING'}">
+    <div class="modal fade" th:id="'confirm-' + ${d.depositOrderId}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: var(--sidebar-bg); border: 1px solid var(--border-color);">
+                <div class="modal-header border-bottom" style="border-color: var(--border-color) !important;">
+                    <h5 class="modal-title text-light">确认充值</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" th:action="@{/dashboard/deposits/{id}/confirm(id=${d.depositOrderId})}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">交易哈希 (TX Hash)</label>
+                            <input type="text" class="form-control" name="txHash">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">实际到账金额 (USDT)</label>
+                            <input type="number" class="form-control" name="actualAmount" step="0.00000001" th:value="${d.amountUsdt}">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top" style="border-color: var(--border-color) !important;">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-success">确认到账</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

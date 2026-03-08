@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - 越南支付平台'">越南支付平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root { --sidebar-width: 260px; --primary: #6366f1; --dark-bg: #0f172a; --sidebar-bg: #1e293b; --card-bg: #1e293b; --text-primary: #e2e8f0; --text-secondary: #94a3b8; --border-color: rgba(255,255,255,0.08); }
+        body { background: var(--dark-bg); color: var(--text-primary); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-width); background: var(--sidebar-bg); border-right: 1px solid var(--border-color); overflow-y: auto; z-index: 1000; }
+        .sidebar .brand { padding: 20px; border-bottom: 1px solid var(--border-color); }
+        .sidebar .brand h5 { color: var(--primary); font-weight: 700; margin: 0; }
+        .sidebar .brand small { color: var(--text-secondary); }
+        .sidebar .nav-link { color: var(--text-secondary); padding: 10px 20px; border-radius: 8px; margin: 2px 12px; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: var(--text-primary); background: rgba(99,102,241,0.12); }
+        .sidebar .nav-link.active { color: var(--primary); font-weight: 600; }
+        .sidebar .nav-link i { font-size: 18px; width: 22px; text-align: center; }
+        .sidebar .nav-section { color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 16px 20px 6px; font-weight: 600; }
+        .main-content { margin-left: var(--sidebar-width); padding: 24px; min-height: 100vh; }
+        .page-header { margin-bottom: 24px; }
+        .page-header h3 { font-weight: 700; margin: 0; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+        .stat-card .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-card .stat-label { color: var(--text-secondary); font-size: 13px; }
+        .stat-card .stat-icon { font-size: 36px; opacity: 0.3; }
+        .card-dark { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; }
+        .card-dark .card-header { background: transparent; border-bottom: 1px solid var(--border-color); color: var(--text-primary); font-weight: 600; }
+        .table-dark-custom { --bs-table-bg: transparent; --bs-table-color: var(--text-primary); --bs-table-border-color: var(--border-color); }
+        .table-dark-custom thead th { background: rgba(255,255,255,0.03); color: var(--text-secondary); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); }
+        .table-dark-custom tbody tr:hover { background: rgba(99,102,241,0.06); }
+        .badge-status { font-size: 12px; padding: 4px 10px; border-radius: 6px; font-weight: 500; }
+        .badge-success { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .badge-warning { background: rgba(234,179,8,0.15); color: #eab308; }
+        .badge-info { background: rgba(59,130,246,0.15); color: #3b82f6; }
+        .badge-secondary { background: rgba(148,163,184,0.15); color: #94a3b8; }
+        .form-control, .form-select { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-primary); }
+        .form-control:focus, .form-select:focus { background: rgba(255,255,255,0.08); border-color: var(--primary); color: var(--text-primary); box-shadow: 0 0 0 0.2rem rgba(99,102,241,0.15); }
+        .form-control::placeholder { color: var(--text-secondary); }
+        .btn-primary { background: var(--primary); border-color: var(--primary); }
+        .btn-primary:hover { background: #4f46e5; border-color: #4f46e5; }
+        .btn-outline-light { border-color: var(--border-color); color: var(--text-secondary); }
+        .btn-outline-light:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 12px 0; }
+        .topbar .breadcrumb { background: none; margin: 0; padding: 0; }
+        .topbar .breadcrumb-item a { color: var(--text-secondary); text-decoration: none; }
+        .topbar .breadcrumb-item.active { color: var(--text-primary); }
+        option { background: var(--sidebar-bg); color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar Fragment -->
+<nav th:fragment="sidebar" class="sidebar">
+    <div class="brand">
+        <h5><i class="bi bi-shield-lock-fill me-2"></i>VN Payment</h5>
+        <small>管理后台 v1.0</small>
+    </div>
+    <div class="py-2">
+        <div class="nav-section">概览</div>
+        <a th:href="@{/dashboard}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'dashboard')} ? 'active'">
+            <i class="bi bi-speedometer2"></i> 仪表盘
+        </a>
+        <div class="nav-section">业务管理</div>
+        <a th:href="@{/dashboard/merchants}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'merchants')} ? 'active'">
+            <i class="bi bi-building"></i> 商户管理
+        </a>
+        <a th:href="@{/dashboard/transactions}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'transactions')} ? 'active'">
+            <i class="bi bi-receipt"></i> 交易管理
+        </a>
+        <a th:href="@{/dashboard/deposits}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'deposits')} ? 'active'">
+            <i class="bi bi-currency-bitcoin"></i> USDT充值
+        </a>
+        <a th:href="@{/dashboard/devices}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'devices')} ? 'active'">
+            <i class="bi bi-phone"></i> 设备管理
+        </a>
+        <a th:href="@{/dashboard/channels}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'channels')} ? 'active'">
+            <i class="bi bi-diagram-3"></i> 通道管理
+        </a>
+        <div class="nav-section">财务</div>
+        <a th:href="@{/dashboard/settlement}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'settlement')} ? 'active'">
+            <i class="bi bi-cash-stack"></i> 结算管理
+        </a>
+        <a th:href="@{/dashboard/reconciliation}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'reconciliation')} ? 'active'">
+            <i class="bi bi-file-earmark-check"></i> 对账管理
+        </a>
+        <div class="nav-section">安全 &amp; 报表</div>
+        <a th:href="@{/dashboard/risk}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'risk')} ? 'active'">
+            <i class="bi bi-shield-exclamation"></i> 风控中心
+        </a>
+        <a th:href="@{/dashboard/reports}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'reports')} ? 'active'">
+            <i class="bi bi-bar-chart-line"></i> 数据报表
+        </a>
+        <a th:href="@{/dashboard/settings}" class="nav-link" th:classappend="${#strings.equals(currentPage, 'settings')} ? 'active'">
+            <i class="bi bi-gear"></i> 系统设置
+        </a>
+        <div style="border-top: 1px solid var(--border-color); margin: 16px 12px 8px;"></div>
+        <a th:href="@{/logout}" class="nav-link">
+            <i class="bi bi-box-arrow-left"></i> 退出登录
+        </a>
+    </div>
+</nav>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('交易详情')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: sidebar}"></nav>
+<script th:inline="javascript">document.querySelector('.sidebar .nav-link[href="/dashboard/transactions"]').classList.add('active');</script>
+<div class="main-content">
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <h3><i class="bi bi-receipt me-2"></i>交易详情</h3>
+            <p class="text-secondary mb-0">交易ID: <code th:text="${transaction.transactionId}"></code></p>
+        </div>
+        <a th:href="@{/dashboard/transactions}" class="btn btn-outline-light"><i class="bi bi-arrow-left"></i> 返回</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card card-dark">
+                <div class="card-header"><i class="bi bi-info-circle me-1"></i> 交易信息</div>
+                <div class="card-body">
+                    <table class="table table-dark-custom mb-0">
+                        <tr><td class="text-secondary" style="width:140px;">交易ID</td><td><code th:text="${transaction.transactionId}"></code></td></tr>
+                        <tr><td class="text-secondary">商户ID</td><td th:text="${transaction.merchantId}"></td></tr>
+                        <tr><td class="text-secondary">商户订单号</td><td th:text="${transaction.merchantOrderId}"></td></tr>
+                        <tr><td class="text-secondary">金额</td><td th:text="${#numbers.formatDecimal(transaction.amount, 0, 'COMMA', 2, 'POINT')} + ' VND'"></td></tr>
+                        <tr><td class="text-secondary">币种</td><td th:text="${transaction.currency}"></td></tr>
+                        <tr><td class="text-secondary">支付方式</td><td th:text="${transaction.payMethod}"></td></tr>
+                        <tr><td class="text-secondary">手续费</td><td th:text="${#numbers.formatDecimal(transaction.feeAmount, 0, 'COMMA', 2, 'POINT')} + ' VND'"></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card card-dark mb-3">
+                <div class="card-header"><i class="bi bi-diagram-3 me-1"></i> 通道 &amp; 状态</div>
+                <div class="card-body">
+                    <table class="table table-dark-custom mb-0">
+                        <tr><td class="text-secondary" style="width:140px;">通道ID</td><td th:text="${transaction.channelId}"></td></tr>
+                        <tr><td class="text-secondary">通道交易ID</td><td><code th:text="${transaction.channelTransactionId}"></code></td></tr>
+                        <tr>
+                            <td class="text-secondary">交易状态</td>
+                            <td><span class="badge badge-status" th:classappend="${transaction.status.startsWith('SUCCESS')} ? 'badge-success' : (${transaction.status == 'FAILED'} ? 'badge-danger' : 'badge-warning')" th:text="${transaction.status}"></span></td>
+                        </tr>
+                        <tr><td class="text-secondary">确认来源</td><td><span class="badge badge-status badge-info" th:text="${transaction.matchSource}" th:if="${transaction.matchSource != null}"></span><span th:if="${transaction.matchSource == null}" class="text-secondary">-</span></td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="card card-dark">
+                <div class="card-header"><i class="bi bi-arrow-repeat me-1"></i> 回调信息</div>
+                <div class="card-body">
+                    <table class="table table-dark-custom mb-0">
+                        <tr><td class="text-secondary" style="width:140px;">回调URL</td><td><code style="word-break:break-all;" th:text="${transaction.notifyUrl}"></code></td></tr>
+                        <tr><td class="text-secondary">回调状态</td><td><span class="badge badge-status" th:classappend="${transaction.callbackStatus == 'CONFIRMED'} ? 'badge-success' : (${transaction.callbackStatus == 'FAILED'} ? 'badge-danger' : 'badge-warning')" th:text="${transaction.callbackStatus}"></span></td></tr>
+                        <tr><td class="text-secondary">回调次数</td><td th:text="${transaction.callbackCount}"></td></tr>
+                        <tr><td class="text-secondary">创建时间</td><td th:text="${#temporals.format(transaction.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td></tr>
+                        <tr><td class="text-secondary">更新时间</td><td th:text="${transaction.updatedAt != null} ? ${#temporals.format(transaction.updatedAt, 'yyyy-MM-dd HH:mm:ss')} : '-'"></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- State Machine History -->
+        <div class="col-12">
+            <div class="card card-dark">
+                <div class="card-header"><i class="bi bi-clock-history me-1"></i> 三路确认状态</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded" style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);">
+                                <h6 class="text-primary"><i class="bi bi-diagram-3 me-1"></i> 通道回调确认</h6>
+                                <p class="mb-0 small" th:if="${transaction.matchSource == 'CHANNEL'}"><span class="badge badge-success">已确认</span></p>
+                                <p class="mb-0 small text-secondary" th:if="${transaction.matchSource != 'CHANNEL'}">等待确认</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded" style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);">
+                                <h6 style="color: #22c55e;"><i class="bi bi-phone me-1"></i> 设备通知确认</h6>
+                                <p class="mb-0 small" th:if="${transaction.matchSource == 'DEVICE'}"><span class="badge badge-success">已确认</span></p>
+                                <p class="mb-0 small text-secondary" th:if="${transaction.matchSource != 'DEVICE'}">等待确认</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded" style="background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.2);">
+                                <h6 style="color: #eab308;"><i class="bi bi-file-earmark-check me-1"></i> 对账文件确认</h6>
+                                <p class="mb-0 small" th:if="${transaction.matchSource == 'RECONCILIATION'}"><span class="badge badge-success">已确认</span></p>
+                                <p class="mb-0 small text-secondary" th:if="${transaction.matchSource != 'RECONCILIATION'}">等待确认</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

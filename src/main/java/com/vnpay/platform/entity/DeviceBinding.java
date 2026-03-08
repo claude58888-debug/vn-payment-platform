@@ -1,8 +1,10 @@
 package com.vnpay.platform.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -23,6 +25,7 @@ public class DeviceBinding {
 
     private String authKey;
 
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private String deviceInfo;
 
     private String trustLevel;
