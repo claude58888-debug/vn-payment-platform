@@ -1,0 +1,19 @@
+// Android Assistant App - Merchant Payment Notification Listener
+// This is a simplified build file. Use Android Studio for full build.
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.0'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
