@@ -78,7 +78,7 @@ platform:
     expiration: 86400000
   admin:
     username: ${PLATFORM_ADMIN_USERNAME:admin}
-    password-hash: ${PLATFORM_ADMIN_PASSWORD_HASH:$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy}
+    password: ${PLATFORM_ADMIN_PASSWORD:admin123}
   snowflake:
     worker-id: 1
     datacenter-id: 1
